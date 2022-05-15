@@ -1,4 +1,6 @@
 # homework16
+1. Создам сервис, который будет раз в 30 секунд проверять журнал `/var/log/secure` на наличие запуска `sudo`
+2. Для это создам файл конфигурации
 
 ```
 [root@homework16 ~]# cat /etc/sysconfig/watchlog
@@ -8,6 +10,9 @@
 WORD="sudo"
 LOG=/var/log/secure
 ```
+
+3. Создам скрипт поиска слова в журнале, и записи события, если слово найдено
+
 ```
 [root@homework16 ~]# cat /opt/watchsecurelog.sh
 #!/bin/bash
@@ -23,6 +28,9 @@ if grep $WORD $LOG &> /dev/null
 exit 0
 fi
 ```
+
+4. Добавляю права на запуск скрипта
+
 ```
 [root@homework16 ~]# ls -la /opt/watchsecurelog.sh
 -rwxr-xr-x. 1 root root 191 May 12 13:39 /opt/watchsecurelog.sh
