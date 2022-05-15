@@ -163,3 +163,115 @@ WantedBy=multi-user.target
 May 15 15:37:51 homework16 systemd[1]: Started Spawn-fcgi startup service by Otus.
 lines 19-42/42 (END)
 ```
+```
+[root@homework16 system]# cat /usr/lib/systemd/system/httpd@.service
+# This is a template for httpd instances.
+# See httpd@.service(8) for more information.
+
+[Unit]
+Description=The Apache HTTP Server
+After=network.target remote-fs.target nss-lookup.target
+Documentation=man:httpd@.service(8)
+
+[Service]
+Type=notify
+Environment=LANG=C
+Environment=HTTPD_INSTANCE=%i
+ExecStartPre=/bin/mkdir -m 710 -p /run/httpd/instance-%i
+ExecStartPre=/bin/chown root.apache /run/httpd/instance-%i
+ExecStart=/usr/sbin/httpd $OPTIONS -DFOREGROUND -f conf/%i.conf
+ExecReload=/usr/sbin/httpd $OPTIONS -k graceful -f conf/%i.conf
+# Send SIGWINCH for graceful stop
+KillSignal=SIGWINCH
+KillMode=mixed
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```
+cp /etc/httpd/conf/httpd.conf /etc/httpd/conf/first.conf
+cp /etc/httpd/conf/httpd.conf /etc/httpd/conf/second.conf
+```
+
+```
+[root@homework16 system]# cat /etc/httpd/conf/first.conf | grep -e "Listen" -e "PidFile"
+# least PidFile.
+# Listen: Allows you to bind Apache to specific IP addresses and/or
+# Change this to Listen on specific IP addresses as shown below to
+#Listen 12.34.56.78:80
+Listen 80
+PidFile /var/run/httpd-first.pid
+```
+
+```
+[root@homework16 system]# cat /etc/httpd/conf/second.conf | grep -e "Listen" -e "PidFile"
+# least PidFile.
+# Listen: Allows you to bind Apache to specific IP addresses and/or
+# Change this to Listen on specific IP addresses as shown below to
+#Listen 12.34.56.78:80
+Listen 8080
+PidFile /var/run/httpd-second.pid
+```
+
+```
+systemctl start httpd@first.service
+systemctl start httpd@seconf.service
+```
+
+```
+[root@homework16 system]# systemctl status httpd@
+httpd@first.service   httpd@second.service  httpd@seconf.service
+[root@homework16 system]# systemctl status httpd@first.service
+● httpd@first.service - The Apache HTTP Server
+   Loaded: loaded (/usr/lib/systemd/system/httpd@.service; disabled; vendor preset: disabled)
+   Active: active (running) since Sun 2022-05-15 18:01:04 UTC; 1h 10min ago
+     Docs: man:httpd@.service(8)
+  Process: 65821 ExecStartPre=/bin/chown root.apache /run/httpd/instance-first (code=exited, status=0/SUCCESS)
+  Process: 65819 ExecStartPre=/bin/mkdir -m 710 -p /run/httpd/instance-first (code=exited, status=0/SUCCESS)
+ Main PID: 65823 (httpd)
+   Status: "Running, listening on: port 80"
+    Tasks: 213 (limit: 11402)
+   Memory: 26.3M
+   CGroup: /system.slice/system-httpd.slice/httpd@first.service
+           ├─65823 /usr/sbin/httpd -DFOREGROUND -f conf/first.conf
+           ├─65825 /usr/sbin/httpd -DFOREGROUND -f conf/first.conf
+           ├─65826 /usr/sbin/httpd -DFOREGROUND -f conf/first.conf
+           ├─65827 /usr/sbin/httpd -DFOREGROUND -f conf/first.conf
+           └─65828 /usr/sbin/httpd -DFOREGROUND -f conf/first.conf
+
+May 15 18:01:04 homework16 systemd[1]: Starting The Apache HTTP Server...
+May 15 18:01:04 homework16 httpd[65823]: AH00558: httpd: Could not reliably determine the server's fully qualified domain name, using 127.0.1.1. Set the 'S>
+May 15 18:01:04 homework16 systemd[1]: Started The Apache HTTP Server.
+May 15 18:01:04 homework16 httpd[65823]: Server configured, listening on: port 80
+```
+
+```
+[root@homework16 system]# systemctl status httpd@second.service
+● httpd@second.service - The Apache HTTP Server
+   Loaded: loaded (/usr/lib/systemd/system/httpd@.service; disabled; vendor preset: disabled)
+   Active: active (running) since Sun 2022-05-15 18:01:16 UTC; 1h 11min ago
+     Docs: man:httpd.service(8)
+ Main PID: 66053 (httpd)
+   Status: "Running, listening on: port 8080"
+    Tasks: 213 (limit: 11402)
+   Memory: 24.2M
+   CGroup: /system.slice/system-httpd.slice/httpd@second.service
+           ├─66053 /usr/sbin/httpd -f conf/second.conf -DFOREGROUND
+           ├─66054 /usr/sbin/httpd -f conf/second.conf -DFOREGROUND
+           ├─66055 /usr/sbin/httpd -f conf/second.conf -DFOREGROUND
+           ├─66056 /usr/sbin/httpd -f conf/second.conf -DFOREGROUND
+           └─66057 /usr/sbin/httpd -f conf/second.conf -DFOREGROUND
+
+May 15 18:01:16 homework16 systemd[1]: Starting The Apache HTTP Server...
+May 15 18:01:16 homework16 httpd[66053]: AH00558: httpd: Could not reliably determine the server's fully qualified domain name, using 127.0.1.1. Set the 'S>
+May 15 18:01:16 homework16 systemd[1]: Started The Apache HTTP Server.
+May 15 18:01:16 homework16 httpd[66053]: Server configured, listening on: port 8080
+```
+
+```
+[root@homework16 system]# ss -tulpn | grep httpd
+tcp   LISTEN 0      128          0.0.0.0:8080      0.0.0.0:*    users:(("httpd",pid=66057,fd=3),("httpd",pid=66056,fd=3),("httpd",pid=66055,fd=3),("httpd",pid=66053,fd=3))
+tcp   LISTEN 0      128          0.0.0.0:80        0.0.0.0:*    users:(("httpd",pid=65828,fd=3),("httpd",pid=65827,fd=3),("httpd",pid=65826,fd=3),("httpd",pid=65823,fd=3))
+```
