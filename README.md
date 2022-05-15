@@ -24,6 +24,11 @@ exit 0
 fi
 ```
 ```
+[root@homework16 ~]# ls -la /opt/watchsecurelog.sh
+-rwxr-xr-x. 1 root root 191 May 12 13:39 /opt/watchsecurelog.sh
+```
+
+```
 [root@homework16 ~]# cat /etc/systemd/system/watchlog.service
 [Unit]
 Description=My watchlog service
@@ -55,4 +60,8 @@ May 15 14:47:12 homework16 systemd[1]: Started Run watchlog script every 30 sec>
 
 ```
 ```
+May 15 14:46:47 homework16 systemd[1]: Starting My watchlog service...
+May 15 14:46:47 homework16 root[41803]: Sun May 15 14:46:47 UTC 2022 :run check sudoers sudo /var/log/secure
+May 15 14:46:47 homework16 root[41806]: Sun May 15 14:46:47 UTC 2022: !!! sudoer found!!!
+May 15 14:46:47 homework16 systemd[1]: watchlog.service: Succeeded.
 ```
