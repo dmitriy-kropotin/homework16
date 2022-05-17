@@ -36,6 +36,8 @@ fi
 -rwxr-xr-x. 1 root root 191 May 12 13:39 /opt/watchsecurelog.sh
 ```
 
+5. Добавляю службу для запуска скрипта
+
 ```
 [root@homework16 ~]# cat /etc/systemd/system/watchlog.service
 [Unit]
@@ -45,6 +47,9 @@ Type=oneshot
 EnvironmentFile=/etc/sysconfig/watchlog
 ExecStart=/opt/watchsecurelog.sh $WORD $LOG
 ```
+
+6. Добавляю юнит для запуска службы по таймеру.
+
 ```
 [root@homework16 ~]# cat /etc/systemd/system/watchlog.timer
 [Unit]
@@ -56,6 +61,9 @@ Unit=watchlog.service
 [Install]
 WantedBy=multi-user.target
 ```
+
+7. Запусаю, проверяю статус.
+
 ```
 [root@homework16 ~]# systemctl start watchlog.timer
 [root@homework16 ~]# systemctl status watchlog.timer
@@ -65,14 +73,22 @@ WantedBy=multi-user.target
   Trigger: n/a
 
 May 15 14:47:12 homework16 systemd[1]: Started Run watchlog script every 30 sec>
+```
+
+8. Проверяю системный журнал. Сообщения есть! Работает
 
 ```
-```
+cat /var/log/messages
+....
 May 15 14:46:47 homework16 systemd[1]: Starting My watchlog service...
 May 15 14:46:47 homework16 root[41803]: Sun May 15 14:46:47 UTC 2022 :run check sudoers sudo /var/log/secure
 May 15 14:46:47 homework16 root[41806]: Sun May 15 14:46:47 UTC 2022: !!! sudoer found!!!
 May 15 14:46:47 homework16 systemd[1]: watchlog.service: Succeeded.
+....
 ```
+
+9. Устнавлию `spawn-fcgi` для следующей части ДЗ
+
 ```
 [root@homework16 ~]# dnf instal epel-release
 ...
@@ -98,6 +114,9 @@ Installed:
 
 Complete!
 ```
+
+10. 
+
 ```
 [root@homework16 ~]# cat /etc/sysconfig/spawn-fcgi
 # You must set some working options before the "spawn-fcgi" service will work.
