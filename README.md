@@ -115,7 +115,7 @@ Installed:
 Complete!
 ```
 
-10. 
+10. Редактирую `/etc/sysconfig/spawn-fcgi`, нужны параметры SOCKET и OPTIONS
 
 ```
 [root@homework16 ~]# cat /etc/sysconfig/spawn-fcgi
@@ -127,8 +127,10 @@ Complete!
 # Example :
 SOCKET=/var/run/php-fcgi.sock
 OPTIONS="-u apache -g apache -s $SOCKET -S -M 0600 -C 32 -F 1 -P /var/run/spawn-fcgi.pid -- /usr/bin/php-cgi"
-
 ```
+
+11. Создаю файл юнита
+
 ```
 [root@homework16 ~]# cat /etc/systemd/system/spawn-fcgi.service
 [Unit]
@@ -143,6 +145,9 @@ KillMode=process
 [Install]
 WantedBy=multi-user.target
 ```
+
+12. Запускаю, и проверюя статус.
+
 ```
 [root@homework16 ~]# systemctl start spawn-fcgi.service
 [root@homework16 ~]# systemctl status spawn-fcgi.service
@@ -190,6 +195,9 @@ WantedBy=multi-user.target
 May 15 15:37:51 homework16 systemd[1]: Started Spawn-fcgi startup service by Otus.
 lines 19-42/42 (END)
 ```
+
+13. Следующее ДЗ, сделать возможность запуска httpd с разными конфигурациями. В новых версия httpd уже есть готовый юнит для этого
+
 ```
 [root@homework16 system]# cat /usr/lib/systemd/system/httpd@.service
 # This is a template for httpd instances.
@@ -217,10 +225,14 @@ PrivateTmp=true
 WantedBy=multi-user.target
 ```
 
+14. Создаю два файла конфигурации (копированием из стандартной)
+
 ```
 cp /etc/httpd/conf/httpd.conf /etc/httpd/conf/first.conf
 cp /etc/httpd/conf/httpd.conf /etc/httpd/conf/second.conf
 ```
+
+15. Редактирую параметры, Listen и PidFile
 
 ```
 [root@homework16 system]# cat /etc/httpd/conf/first.conf | grep -e "Listen" -e "PidFile"
@@ -242,14 +254,11 @@ Listen 8080
 PidFile /var/run/httpd-second.pid
 ```
 
+16. Пробую запускать и проверюя статус
+
 ```
 systemctl start httpd@first.service
 systemctl start httpd@seconf.service
-```
-
-```
-[root@homework16 system]# systemctl status httpd@
-httpd@first.service   httpd@second.service  httpd@seconf.service
 [root@homework16 system]# systemctl status httpd@first.service
 ● httpd@first.service - The Apache HTTP Server
    Loaded: loaded (/usr/lib/systemd/system/httpd@.service; disabled; vendor preset: disabled)
@@ -296,6 +305,8 @@ May 15 18:01:16 homework16 httpd[66053]: AH00558: httpd: Could not reliably dete
 May 15 18:01:16 homework16 systemd[1]: Started The Apache HTTP Server.
 May 15 18:01:16 homework16 httpd[66053]: Server configured, listening on: port 8080
 ```
+
+17. Все работает! Ура!
 
 ```
 [root@homework16 system]# ss -tulpn | grep httpd
